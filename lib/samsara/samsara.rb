@@ -34,20 +34,33 @@ module Gap
                FileTest.file?(realpath) && 
                MD5.filehex(realpath) == @cache[md5key]
             elsif @cache.has?(filekey)
-                open(realpath, 'wb') do |f|
-                   f.write @cache[filekey]
-                end
+                _writefile realpath, @cache[filekey]
             else
                 u = gen(filename, *args, &block)
                 @cache.transaction do |db|
                     db[md5key]  = MD5.hexdigest u
                     db[filekey] = u
-                    open(realpath, 'wb') do |f|
-                        f.write @cache[filekey]
-                    end
+                    _writefile realpath, @cache[filekey]
                 end
             end
             realpath
+        end
+
+        def has_file_in?(filename) 
+            md5key =  [Meta.new(:filemd5), filename]
+            filekey = [Meta.new(:file), filename]
+            @cache.has?(md5key) && 
+            @cache.has?(filekey) && 
+            MD5.hexdigest(@cache[filekey]) == @cache[md5key]
+        end
+
+        def need_update_file?(filename, realfile)
+            if has_file_in?(filename )
+                md5key =  [Meta.new(:filemd5), filename]
+                MD5.filehex(realfile) != @cache[md5key]
+            else
+                true
+            end
         end
 
         def file(name)
@@ -57,6 +70,28 @@ module Gap
     private
         def _file(name)
             File.join(@filepath, name)
+        end
+
+        def _mkdirp(name)
+            names = name.tr("\\", "/").split("/")[0..-2]
+            names.inject(""){|a, b|
+                if a == ""
+                    path = b
+                else
+                    path = a + "/" + b
+                end
+                if !FileTest.directory?(path)
+                    Dir.mkdir(path)
+                end
+                path
+            }
+        end
+
+        def _writefile(name, val)
+            _mkdirp(name)
+            open(name, "wb") do |f|
+                f.write val
+            end
         end
 
     end
