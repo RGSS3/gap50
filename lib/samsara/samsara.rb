@@ -67,9 +67,21 @@ module Gap
             _file(name)
         end
 
+        def writefile(a, b)
+            _writefile a, b
+        end
+
+        def mangle(name)
+            _mangle(name)
+        end
+
     private
         def _file(name)
-            File.join(@filepath, name)
+            File.join(@filepath, _mangle(name))
+        end
+
+        def _mangle(name)
+            name.gsub("://", "$SEP$/").gsub(/[:"']/){ "$#{$&.unpack("H")}$" }
         end
 
         def _mkdirp(name)

@@ -33,6 +33,18 @@ module Gap
         end
 
     private
+        def _getdata
+            head  = []
+            data  = []
+            start = 0
+            @hash.each{|k, v|
+                r = Zlib::Deflate.deflate v, 9
+                head << [k, v.size, r.size, start]
+                data << r
+                start += r.size
+            }
+            [head, data]
+        end
         def _load
             @hash = open(@filename, 'rb') do |f|
                 Marshal.load Zlib::Inflate.inflate f.read
@@ -41,7 +53,7 @@ module Gap
 
         def _save
             open(@filename, 'wb') do |f|
-                f.write (Zlib::Deflate.deflate Marshal.dump @hash)                
+                f.write (Zlib::Deflate.deflate Marshal.dump @hash)
             end
         end
 
