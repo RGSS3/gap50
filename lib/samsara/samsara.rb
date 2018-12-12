@@ -51,11 +51,12 @@ module Gap
             filekey = [Meta.new(:file), filename]
             @cache.has?(md5key) && 
             @cache.has?(filekey) && 
+            @cache[md5key] != nil &&
             MD5.hexdigest(@cache[filekey]) == @cache[md5key]
         end
 
         def need_update_file?(filename, realfile)
-            if has_file_in?(filename )
+            if has_file_in?(filename)
                 md5key =  [Meta.new(:filemd5), filename]
                 MD5.filehex(realfile) != @cache[md5key]
             else

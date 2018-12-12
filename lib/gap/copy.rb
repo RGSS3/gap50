@@ -6,6 +6,7 @@ module Gap
 
         def copy(dir, basedir, pattern)
             Dir.glob(basedir + "/" + pattern) do |all|
+                next if !FileTest.file?(all)
                 file = dir + all[basedir.length..-1]
                 if @sam.need_update_file?(file, all)
                     @sam.genfile file do 
@@ -14,6 +15,7 @@ module Gap
                         end
                     end
                 end
+                yield if block_given?
             end
         end
 

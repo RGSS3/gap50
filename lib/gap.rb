@@ -4,14 +4,10 @@ require 'lib/gap/dll.rb'
 require 'lib/gap/cfunc.rb'
 require 'lib/gap/require.rb'
 
+sam = Gap::Samsara.new "support.sam"
+copy = Gap::Copy.new sam
+copy.copy "rexml", 'D:/ruby24/lib/ruby/2.4.0/rexml', '**/*' do Graphics.update end
 
-Gap::Main.genfile "archive://a/a/a/a/a/!a/!a!/main.rb" do 
-    %{
-        print "Hello world"
-    }
-end
-
-Gap::Require.replace_kernel!
-
-require "archive://a/a/a/a/a/!a/!a!/main.rb"
-
+req = Gap::Require.new sam
+req.replace_kernel!
+require 'rexml/document'

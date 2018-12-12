@@ -1,6 +1,6 @@
 module Gap
     class Require
-        def initialize(strict = true, sam = Gap::Main)
+        def initialize(sam = Gap::Main, strict = true)
             @strict = strict
             @sam = sam
         end
@@ -15,24 +15,35 @@ module Gap
                     _require x
                 }
             end
+        ensure
+            $@.replace caller if $@
         end
 
         ORIGIN = Kernel.method(:require)
         INSTANCE_ORIGIN = Kernel.instance_method(:require)
         DEFAULT_REQUIRE = Require.new
-        def self.require(*args)
-            DEFAULT_REQUIRE.require *args
-        end
+        REQUIRE_STACK = [[INSTANCE_ORIGIN, Kernel]]
 
-        def self.replace_kernel!
+        
+        def replace_kernel!
             that = self
-            Kernel.send :define_method, :require do |*args|
-                that.require *args
-            end
+            REQUIRE_STACK.push [self.class.instance_method(:require), self]
+            _fix_kernel
+        ensure
+            $@.replace caller if $@
         end
 
-        def self.use_kernel!
+        def back_require!
+            REQUIRE_STACK.pop
+            _fix_kernel
+        ensure
+            $@.replace caller if $@
+        end
+
+        def use_kernel!
             Kernel.send :define_method, INSTANCE_ORIGIN
+        ensure
+            $@.replace caller if $@
         end
 
         private
@@ -49,14 +60,37 @@ module Gap
         end
 
         def _require_strict(file)
-            if @sam.has_file_in?(file)
-                path = "./" + @sam.genfile(file)
-                ORIGIN.call path
-            else
-                ORIGIN.call file
-            end
+            [file, file + ".rb"].each{|x|
+                begin
+                    if @sam.has_file_in?(x)
+                        path = "./" + @sam.genfile(x)
+                        return ORIGIN.call path
+                    end
+                rescue LoadError
+                ensure
+                    $@.replace caller if $@
+                end
+            }
+            ORIGIN.call file
+        ensure
+            $@.replace caller if $@
         end
 
-        
+        def _fix_kernel
+            if REQUIRE_STACK[-1]
+                m, o = REQUIRE_STACK[-1]
+                if o == Kernel
+                    use_kernel!
+                else
+                    Kernel.send :define_method, :require do |*args|
+                        m.bind(o).call(*args)
+                    end
+                end
+            else
+                use_kernel!
+            end
+        ensure
+            $@.replace caller if $@
+        end        
     end
 end

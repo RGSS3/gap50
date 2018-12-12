@@ -18,7 +18,7 @@ module Gap
         end
 
         def load
-            _load
+            _load_or_create
         end
 
         def save
@@ -53,15 +53,15 @@ module Gap
 
         def _save
             open(@filename, 'wb') do |f|
-                f.write (Zlib::Deflate.deflate Marshal.dump @hash)
+                f.write (Zlib::Deflate.deflate Marshal.dump(@hash), 9)
             end
         end
 
         def _load_or_create
-            load
+            _load
         rescue
             @hash = {}
-            save
+            _save
         end
     end
 end

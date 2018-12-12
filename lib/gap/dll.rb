@@ -30,7 +30,7 @@ module Gap
         end
 
         def method_missing(sym, *args)
-            self[sym].call(*args)
+            self[sym.to_s].call(*args)
         end
     end
 end
