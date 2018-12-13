@@ -5,9 +5,10 @@ module Gap
         end
 
         def gen(name, args, text)
-            cpp = _file name, ".cpp"
-            outdll = _file name, ".dll"
-            dll = name + ".dll"
+            md5 = Gap::MD5.hexdigest(text)
+            cpp = _file name + "_" + md5, ".cpp"
+            outdll = _file name + "_" + md5, ".dll"
+            dll = name + "_" + md5 + ".dll"
             output = @sam.genfile dll do
                 @sam.writefile cpp, 
                     %{extern "C" int __stdcall #{name}(#{args}) {
@@ -20,9 +21,10 @@ module Gap
         end
 
         def genlib(name, text)
-            cpp = _file name, ".cpp"
-            outdll = _file name, ".dll"
-            dll = name + ".dll"
+            md5 = Gap::MD5.hexdigest(text)
+            cpp = _file name + "_" + md5, ".cpp"
+            outdll = _file name + "_" + md5, ".dll"
+            dll = name + "_" + md5 + ".dll"
             output = @sam.genfile dll do
                 @sam.writefile cpp, 
                     %{#define GAPI(type) extern "C" type __stdcall

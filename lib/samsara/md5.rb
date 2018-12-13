@@ -24,7 +24,7 @@ module Gap
         end
 
         def self.hexdigest(a)
-            digest(a).unpack("H*")
+            digest(a).unpack("H*").first
         end
 
         def self.file(fn)
@@ -38,7 +38,7 @@ module Gap
         end
 
         def self.filehex(fn)
-            file(fn).unpack("H*")
+            file(fn).unpack("H*").first
         end
     end
 end

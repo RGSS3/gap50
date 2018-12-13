@@ -72,6 +72,10 @@ module Gap
             _writefile a, b
         end
 
+        def readfile(a)
+            _readfile a
+        end
+
         def mangle(name)
             _mangle(name)
         end
@@ -100,6 +104,11 @@ module Gap
             }
         end
 
+        def _readfile(name)
+            open(name, 'rb') do |f|
+                f.read
+            end
+        end
         def _writefile(name, val)
             _mkdirp(name)
             open(name, "wb") do |f|
