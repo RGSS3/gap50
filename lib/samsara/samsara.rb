@@ -1,13 +1,25 @@
 module Gap
     class Samsara
         Meta = Struct.new :meta
+        MetaFile = Meta.new :file
+        MetaMD5  = Meta.new :filemd5
         attr_accessor :filepath
         def initialize(name, filepath = "samfile")
             @cache = Gap::Cache.new name
             @filepath = filepath
         end
 
-        
+        def each(&block)
+            @cache.each(&block)
+        end
+
+        def export(file, dir)
+            _export file, dir
+        end
+
+        def import(file, dir)
+            _import file, dir
+        end
         #
         #   gen : [Any] -> ([Any] -> Any) -> Any
         #
@@ -27,8 +39,8 @@ module Gap
         #
         def genfile(filename, args = nil, &block)
             realpath = file(filename)
-            md5key =  [Meta.new(:filemd5), filename]
-            filekey = [Meta.new(:file), filename]
+            md5key =  [MetaMD5, filename]
+            filekey = [MetaFile, filename]
             if @cache.has?(md5key) && 
                @cache.has?(filekey) &&
                FileTest.file?(realpath) && 
@@ -36,10 +48,9 @@ module Gap
             elsif @cache.has?(filekey)
                 _writefile realpath, @cache[filekey]
             else
-                u = gen(filename, *args, &block)
+                u = gen(*filekey, &block)
                 @cache.transaction do |db|
                     db[md5key]  = MD5.hexdigest u
-                    db[filekey] = u
                     _writefile realpath, @cache[filekey]
                 end
             end
@@ -47,8 +58,8 @@ module Gap
         end
 
         def has_file_in?(filename) 
-            md5key =  [Meta.new(:filemd5), filename]
-            filekey = [Meta.new(:file), filename]
+            md5key =  [MetaMD5, filename]
+            filekey = [MetaFile, filename]
             @cache.has?(md5key) && 
             @cache.has?(filekey) && 
             @cache[md5key] != nil &&
@@ -57,7 +68,7 @@ module Gap
 
         def need_update_file?(filename, realfile)
             if has_file_in?(filename)
-                md5key =  [Meta.new(:filemd5), filename]
+                md5key =  [MetaMD5, filename]
                 MD5.filehex(realfile) != @cache[md5key]
             else
                 true
@@ -80,6 +91,9 @@ module Gap
             _mangle(name)
         end
 
+        def rmdir_p(name)
+            _rmdir_p(name)
+        end
     private
         def _file(name)
             File.join(@filepath, _mangle(name))
@@ -87,6 +101,10 @@ module Gap
 
         def _mangle(name)
             name.gsub("://", "$SEP$/").gsub(/[:"']/){ "$#{$&.unpack("H")}$" }
+        end
+
+        def _demangle(name)
+            name.gsub("$SEP$/", "://").gsub(/\$([a-f0-9]+)\$/) { [$1].pack("H") }
         end
 
         def _mkdirp(name)
@@ -116,5 +134,42 @@ module Gap
             end
         end
 
+        def _export(file, dir)
+            if has_file_in?(file)
+                name = _mangle(dir + "/" + file)
+                filekey = [MetaFile, file]
+                _writefile(name, @cache[filekey])
+            else
+                raise "File not found #{file}"
+            end
+        end
+
+        def _import(file, dir)
+            name = _mangle(dir + "/" + file)
+            @cache.transaction do |db|
+                filekey = [MetaFile, file]
+                md5key =  [MetaMD5, file]
+                db.remove filekey
+                content = _readfile name
+                db[md5key] = MD5.hexdigest(content)
+                db[filekey] = content
+            end
+        end
+
+        def _rmdir_p(name)
+            raise if name == nil || name[0] == "/"
+            files = [name]
+            Dir.glob(name + "/**/*") do |f|
+                files << f
+            end
+            files.sort!{|a, b| b.length <=> a.length}
+            files.each{|x|
+                if FileTest.file?(x)
+                    File.delete x
+                else
+                    Dir.delete x
+                end
+            }
+        end
     end
 end

@@ -9,6 +9,10 @@ module Gap
             @hash[a]
         end
 
+        def remove(key)
+            @hash.delete key
+        end
+
         def has?(a)
             @hash.include?(a)
         end
@@ -25,11 +29,17 @@ module Gap
             _save
         end
 
+        def each
+            @hash.each{|k, v|
+                yield k, v
+            }
+        end
+
         def transaction
             load
-            yield self
-        ensure
+            ret = yield self
             save
+            ret
         end
 
     private
