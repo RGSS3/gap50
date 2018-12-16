@@ -39,6 +39,7 @@ module Gap
         end
 
         def transaction
+            _create
             ret = yield self
             _import_all
             _cleanup
@@ -51,6 +52,7 @@ module Gap
         end
 
         def asMarshal
+            _import_all
             @sam.toMarshal
         end
 
@@ -92,6 +94,12 @@ module Gap
 
         def _cleanup
             @sam.rmdir_p(@temp)
+        end
+
+        def _create
+            if !FileTest.directory?(temp)
+                Dir.mkdir temp
+            end
         end
 
         def genname

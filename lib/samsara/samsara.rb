@@ -64,9 +64,10 @@ module Gap
             elsif @cache.has?(filekey)
                 _writefile realpath, @cache[filekey]
             else
-                u = gen(*filekey, &block)
+                u = yield filekey
                 @cache.transaction do |db|
                     db[md5key]  = MD5.hexdigest u
+                    db[filekey] = u
                     _writefile realpath, @cache[filekey]
                 end
             end
@@ -168,6 +169,7 @@ module Gap
                 filekey = [MetaFile, file]
                 md5key =  [MetaMD5, file]
                 db.remove filekey
+                db.remove md5key
                 content = _readfile name
                 db[md5key] = MD5.hexdigest(content)
                 db[filekey] = content
