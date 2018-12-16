@@ -5,6 +5,22 @@ module Gap
             _load_or_create
         end
 
+        def fromBase64(b64)
+            @hash = Marshal.load(b64.unpack("m").first)
+        end
+
+        def toBase64
+            [Marshal.dump(@hash)].pack("m")
+        end
+
+        def fromMarshal(text)
+            @hash = Marshal.load(text)
+        end
+
+        def toMarshal
+            Marshal.dump @hash
+        end
+
         def [](a)
             @hash[a]
         end
@@ -56,15 +72,19 @@ module Gap
             [head, data]
         end
         def _load
-            @hash = HashChain.new
-            open(@filename, 'rb') do |f|
-                @hash.fromIO f
+            if @filename
+                @hash = HashChain.new
+                open(@filename, 'rb') do |f|
+                    @hash.fromIO f
+                end
             end
         end
 
         def _save
-            open(@filename, 'wb') do |f|
-                @hash.toIO f
+            if @filename
+                open(@filename, 'wb') do |f|
+                    @hash.toIO f
+                end
             end
         end
 

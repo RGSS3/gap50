@@ -45,6 +45,15 @@ module Gap
             ret
         end
 
+        def asBase64
+            _import_all
+            @sam.toBase64
+        end
+
+        def asMarshal
+            @sam.toMarshal
+        end
+
         def genlib(name, text)
             writefile "cpp/#{name}.cpp", %{#define GAPI(type) extern "C" type __stdcall
 #{text}

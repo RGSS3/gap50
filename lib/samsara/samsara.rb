@@ -9,6 +9,22 @@ module Gap
             @filepath = filepath
         end
 
+        def fromBase64(b64)
+            @cache.fromBase64 b64
+        end
+
+        def toBase64
+            @cache.toBase64
+        end
+
+        def fromMarshal(text)
+            @cache.fromMarshal text
+        end
+
+        def toMarshal
+            @cache.toMarshal
+        end
+
         def each(&block)
             @cache.each(&block)
         end
@@ -94,6 +110,8 @@ module Gap
         def rmdir_p(name)
             _rmdir_p(name)
         end
+
+        
     private
         def _file(name)
             File.join(@filepath, _mangle(name))
