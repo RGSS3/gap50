@@ -45,6 +45,13 @@ module Gap
             ret
         end
 
+        def genlib(name, text)
+            writefile "cpp/#{name}.cpp", %{#define GAPI(type) extern "C" type __stdcall
+#{text}
+}
+            exec "g++ cpp/#{name}.cpp -o cpp/#{name}.dll -static -s -shared -m32 -Wl,-add-stdcall-alias"
+        end
+
         def from(name)
             @sam = Samsara.new name
             _export_all
@@ -55,6 +62,7 @@ module Gap
         alias READ  readfile
         alias RUN   exec
         alias FROM  from
+        alias CXX   genlib
         private
         def _export_all
             @sam.each{|k, v|

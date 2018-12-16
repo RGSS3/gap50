@@ -56,21 +56,22 @@ module Gap
             [head, data]
         end
         def _load
-            @hash = open(@filename, 'rb') do |f|
-                Marshal.load Zlib::Inflate.inflate f.read
+            @hash = HashChain.new
+            open(@filename, 'rb') do |f|
+                @hash.fromIO f
             end
         end
 
         def _save
             open(@filename, 'wb') do |f|
-                f.write (Zlib::Deflate.deflate Marshal.dump(@hash), 9)
+                @hash.toIO f
             end
         end
 
         def _load_or_create
             _load
         rescue
-            @hash = {}
+            @hash = HashChain.new
             _save
         end
     end

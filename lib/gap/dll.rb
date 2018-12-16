@@ -14,7 +14,11 @@ module Gap
                     "p"
                 end
             end
-            Win32API.new(@path, @name, param, "L").call(*args)
+            begin
+                Win32API.new(@path, @name, param, "L").call(*args)
+            rescue LoadError
+                Win32API.new(File.expand_path(@path), @name, param, "L").call(*args)
+            end
         end
     end
 
