@@ -1,8 +1,8 @@
-require 'lib/preload'
-require 'lib/cache'
-require 'lib/samsara'
-require 'lib/gap'
-require 'lib/ext'
+require 'gap50/preload'
+require 'gap50/cache'
+require 'gap50/samsara'
+require 'gap50/gap'
+require 'gap50/ext'
 
 ruby = Gap::Ruby25.provide
 system %{#{ruby} -e "puts RUBY_DESCRIPTION"}
