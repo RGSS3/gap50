@@ -1,12 +1,43 @@
 module Gap
     class HashChain
-        HashNode = Struct.new :hash, :next
+        HashNode = Struct.new :hash, :next, :usagetag
+        USAGE = {}
+        module Package
+            PACKAGES = []
+            def self.register(a, b)
+                if PACKAGES.include?(a) && PACKAGES[a] != b
+                    raise ArgumentError, "Already exists #{a}"
+                else
+                    PACKAGES[a] = b 
+                end
+            end
+            def self.unregister(a)
+                PACKAGES.delete(a)
+            end
+
+            def self.[](a)
+                if !PACKAGES.include?(a)
+                    raise ArgumentError, "Not exists #{a}"
+                else
+                    PACKAGES[a]
+                end
+            end
+
+            def self.call(hnode)
+                self[hnode]
+            end
+        end
         class HashNode
             def initialize(hash = {}, nx = nil)
                 super(hash, nx)
             end
 
+            def usage
+                USAGE[:usagetag]
+            end
+
             def [](a)
+                return usage.call(self)[a] if usage
                 if self.hash.include?(a)
                     self.hash[a]
                 elsif self.next
@@ -17,10 +48,12 @@ module Gap
             end
 
             def []=(a, b)
+                return (usage.call(self)[a] = b) if usage
                 self.hash[a] = b
             end
 
             def include?(a)
+                return (usage.call(self).include?(a)) if usage
                 if self.hash.include?(a)
                     true
                 elsif self.next
@@ -31,10 +64,12 @@ module Gap
             end
 
             def delete(a)
+                return (usage.call(self).delete(a)) if usage
                 self.hash.delete a
             end
 
             def deleteAll(a)
+                return (usage.call(self).deleteAll(a)) if usage
                 self.hash.delete a
                 self.next.deleteAll a if self.next
             end
