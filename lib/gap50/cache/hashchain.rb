@@ -1,6 +1,6 @@
 module Gap
     class HashChain
-        HashNode = Struct.new :hash, :next, :usagetag
+        HashNode = Struct.new :hash, :next
         USAGE = {}
         module Package
             PACKAGES = []
@@ -28,12 +28,15 @@ module Gap
             end
         end
         class HashNode
+            attr_accessor :usagetag
             def initialize(hash = {}, nx = nil)
                 super(hash, nx)
             end
 
             def usage
-                USAGE[:usagetag]
+                if self.usagetag
+                    USAGE[self.usagetag]
+                end
             end
 
             def [](a)
