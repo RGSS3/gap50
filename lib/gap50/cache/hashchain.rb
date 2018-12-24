@@ -3,7 +3,7 @@ module Gap
         HashNode = Struct.new :hash, :next
         USAGE = {}
         module Package
-            PACKAGES = []
+            PACKAGES = {}
             def self.register(a, b)
                 if PACKAGES.include?(a) && PACKAGES[a] != b
                     raise ArgumentError, "Already exists #{a}"
@@ -24,9 +24,10 @@ module Gap
             end
 
             def self.call(hnode)
-                self[hnode[:package]]
+                self[hnode.getone(:package)]
             end
         end
+        USAGE[:package] = Package
         class HashNode
             attr_accessor :usagetag
             def initialize(hash = {}, nx = nil)
@@ -39,8 +40,11 @@ module Gap
                 end
             end
 
-            def [](a)
-                return usage.call(self)[a] if usage
+            def getone(a)
+                self.hash[a]
+            end
+
+            def get(a)
                 if self.hash.include?(a)
                     self.hash[a]
                 elsif self.next
@@ -50,9 +54,19 @@ module Gap
                 end
             end
 
+            def set(a, b)
+                self.hash[a] = b
+            end
+
+            def [](a)
+                return usage.call(self)[a] if usage
+                get a
+            end
+
+
             def []=(a, b)
                 return (usage.call(self)[a] = b) if usage
-                self.hash[a] = b
+                set a, b
             end
 
             def include?(a)
@@ -82,7 +96,8 @@ module Gap
             @hashnode = HashNode.new hash
         end
 
-        def append(node = HashNode.new)
+        def append(node = HashNode.new, usage = nil)
+            node.usagetag = usage if usage
             node.next = @hashnode
             @hashnode = node
         end
@@ -95,6 +110,18 @@ module Gap
             @hashnode[a] = b
         end
 
+        def get(a)
+            @hashnode.get a
+        end
+
+        def getone(a)
+            @hashnode.getone a
+        end
+
+        def set(a, b)
+            @hashnode.set a, b
+        end
+        
         def include?(a)
             @hashnode.include?(a)
         end

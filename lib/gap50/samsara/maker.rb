@@ -1,7 +1,7 @@
 module Gap
     class Maker
         RND = Random.new
-        attr_accessor :temp, :sam
+        attr_accessor :temp, :sam, :teardown
 
 
         def initialize(sam = nil, temp = genname, &block)
@@ -30,6 +30,10 @@ module Gap
             @sam.writefile path(name), value
         end
 
+        def tear
+            self.teardown = true
+        end
+
         def copyfile(src, dest)
             writefile dest, @sam.readfile(src)
         end
@@ -41,7 +45,7 @@ module Gap
         def transaction
             _create
             ret = yield self
-            _import_all
+            _import_all unless self.teardown
             _cleanup
             ret
         end
