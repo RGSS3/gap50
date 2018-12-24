@@ -24,7 +24,7 @@ module Gap
             end
 
             def self.call(hnode)
-                self[hnode]
+                self[hnode[:package]]
             end
         end
         class HashNode
